@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf_conversions
   pcl_ros
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -182,6 +183,13 @@ target_link_libraries(cloud_viewer
 add_executable(plane_extractor src/plane_extractor.cpp)
 add_dependencies(plane_extractor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(plane_extractor
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+)
+
+add_executable(obj_recog src/obj_recog.cpp)
+add_dependencies(obj_recog ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(obj_recog
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
 )
