@@ -4,11 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /TF1
         - /TF1/Frames1
-        - /PointCloud21
       Splitter Ratio: 0.5
     Tree Height: 575
   - Class: rviz/Selection
@@ -65,7 +62,7 @@ Visualization Manager:
         bracelet_link:
           Value: true
         camera_link:
-          Value: false
+          Value: true
         end_effector_link:
           Value: false
         forearm_link:
@@ -81,7 +78,7 @@ Visualization Manager:
         half_arm_2_link:
           Value: false
         my_gen3/camera_link:
-          Value: true
+          Value: false
         shoulder_link:
           Value: false
         spherical_wrist_1_link:
@@ -172,25 +169,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.134113311767578
+      Distance: 0.9846104979515076
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.37162089347839355
-        Y: 0.036158885806798935
-        Z: 0.14602765440940857
+        X: 0.3188771605491638
+        Y: -0.0222167931497097
+        Z: 0.32099348306655884
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5703977346420288
+      Pitch: 0.32039758563041687
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.4253969192504883
+      Yaw: 1.630397081375122
     Saved: ~
 Window Geometry:
   Displays:

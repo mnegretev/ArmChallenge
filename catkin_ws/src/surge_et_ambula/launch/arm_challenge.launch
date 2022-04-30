@@ -8,6 +8,5 @@
 
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/arm_challenge.rviz"/>
-  <node name="tf_camera1" pkg="tf" type="static_transform_publisher" args="0 0 0 0 3.141592 0 camera_link my_gen3/camera_link 30"/>
-  <node name="tf_camera2" pkg="tf" type="static_transform_publisher" args="0 -0.12 0 0 0 0 bracelet_link camera_link 30"/>
+  <node name="tf_camera1" pkg="tf" type="static_transform_publisher" args="0 0 0.1 0 3.141592 0 camera_link my_gen3/camera_link 30"/>
 </launch>
