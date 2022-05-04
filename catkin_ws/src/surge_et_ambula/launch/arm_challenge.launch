@@ -5,8 +5,8 @@
   </include>
 
   <node name="position_control" pkg="control" type="move_to.py" output="screen"/>
-
-  
+  <node name="inverse_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen"/>
+  <node name="simple_gui" pkg="simple_gui" type="simple_gui_node" output="screen"/>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/arm_challenge.rviz"/>
   <node name="tf_camera1" pkg="tf" type="static_transform_publisher" args="0 0 0.1 0 3.141592 0 camera_link my_gen3/camera_link 30"/>
 </launch>

@@ -35,7 +35,7 @@ QRadioButton::indicator{
 }</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QGroupBox" name="gbManip">
+   <widget class="QGroupBox" name="gbArticular">
     <property name="geometry">
      <rect>
       <x>320</x>

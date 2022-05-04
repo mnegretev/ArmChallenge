@@ -7,6 +7,13 @@ import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
 from manip_msgs.srv import *
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from sensor_msgs.msg import JointState
+
+def get_current_position():
+    msg = rospy.wait_for_message("/my_gen3/joint_states", JointState)
+    q = msg.position[1:8]
+    return q
 
 def get_model_info():
     global joints, transforms
@@ -21,9 +28,11 @@ def get_model_info():
         T = tft.translation_matrix(joint.origin.xyz)
         R = tft.euler_matrix(joint.origin.rpy[0], joint.origin.rpy[1], joint.origin.rpy[2])
         transforms.append(tft.concatenate_matrices(T,R))
-
+            
 def angles_in_joint_limits(q):
     for i in range(len(q)):
+        if [joints[i].limit.lower, joints[i].limit.upper] == [0,0]:
+            continue
         if q[i] < joints[i].limit.lower or q[i] > joints[i].limit.upper:
             print("InverseKinematics.->Articular position out of joint bounds")
             return False
@@ -32,7 +41,6 @@ def angles_in_joint_limits(q):
 def direct_kinematics(q):
     global transforms, joints
     H = tft.identity_matrix()
-    print(transforms[0])
     for i in range(len(q)):
         H  = tft.concatenate_matrices(H, transforms[i], tft.rotation_matrix(q[i], joints[i].axis))
     H  = tft.concatenate_matrices(H, transforms[7])
@@ -48,11 +56,13 @@ def jacobian(q):
     return J
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw):
+    print("Trying to calculate inverse kinematics")
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
-    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
+    q = numpy.asarray(get_current_position())
     p  = direct_kinematics(q)
     iterations = 0
     while numpy.linalg.norm(p - pd) > 0.01 and iterations < 20:
+        print(q)
         J = jacobian(q)
         err = p - pd
         err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
@@ -85,7 +95,7 @@ def main():
     rospy.init_node("ik_geometric")
     get_model_info()
     rospy.Service("/manipulation/inverse_kinematics", InverseKinematicsForPose, callback_ik_for_pose)
-    rospy.Service("/manipulation/direct_kinematics" , ForwardKinematics, callback_dk)
+    rospy.Service("/manipulation/forward_kinematics" , ForwardKinematics, callback_dk)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()

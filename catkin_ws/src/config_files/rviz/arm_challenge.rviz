@@ -60,11 +60,11 @@ Visualization Manager:
         base_link:
           Value: true
         bracelet_link:
-          Value: true
-        camera_link:
-          Value: true
-        end_effector_link:
           Value: false
+        camera_link:
+          Value: false
+        end_effector_link:
+          Value: true
         forearm_link:
           Value: false
         gripper_base_link:
@@ -169,7 +169,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.9846104979515076
+      Distance: 2.691084623336792
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -184,10 +184,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.32039758563041687
+      Pitch: 0.15039771795272827
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.630397081375122
+      Yaw: 1.70039701461792
     Saved: ~
 Window Geometry:
   Displays:

@@ -8,6 +8,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "sensor_msgs/JointState.h"
+#include "control_msgs/GripperCommandActionGoal.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
 #include "manip_msgs/ForwardKinematics.h"
 
@@ -20,7 +21,7 @@ public:
 
     ros::NodeHandle* n;
     ros::Publisher pubGoalQ;
-    ros::Publisher pubGoalGripper;
+    ros::Publisher pubGoalGrip;
     ros::Publisher pubJointStates;
     ros::Subscriber subJointStates;
     ros::ServiceClient cltInverseKinematics;
@@ -28,6 +29,7 @@ public:
     
     bool gui_closed;
     std::vector<float> current_q;
+    std::vector<float> current_cartesian;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);

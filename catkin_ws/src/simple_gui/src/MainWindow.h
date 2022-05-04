@@ -32,6 +32,7 @@ public:
     void setRosNode(QtRosNode* qtRosNode);
     void setYamlParser(YamlParser* yamlParser);
     void closeEvent(QCloseEvent *event);
+    void initGuiElements(sensor_msgs::JointState& q0);
 
 public slots:
     //Slots for signals emitted in the QtRosNode (e.g. a topic is received)
@@ -49,6 +50,7 @@ public slots:
     void btnYawpPressed();
     void btnYawmPressed();  
 
+    void get_IK_and_update_ui(std::vector<float> cartesian);
     void sbAnglesValueChanged(double d);
     void txtArticularGoalReturnPressed();
     void txtCartesianGoalReturnPressed();
