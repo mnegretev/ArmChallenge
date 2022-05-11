@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(plane_extractor)
+project(act_pln)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -9,31 +9,19 @@ project(plane_extractor)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  manip_msgs
   roscpp
   rospy
   sensor_msgs
   std_msgs
   tf
-  cv_bridge
-  tf_conversions
-  pcl_ros
-  visualization_msgs
   vision_msgs
+  control_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(OpenCV 3 REQUIRED)
-#set(CMAKE_PREFIX_PATH "/usr/local/")
-#set(OpenCV_LIB_DIR "/usr/local/lib")
-#set(OpenCV_INCLUDE_DIRS "/usr/local/include")
-#message("Includes: " ${OpenCV_INCLUDE_DIRS})
-message("Veersion OpenCV" ${OpenCV_VERSION})
-#set(OpenCV_DIR "/usr/local/lib")
-message("Libs dir" ${OpeCV_LINK_DIR})
-message("Libs: " ${OpenCV_LIBS})
-message("OpenCV_LIB_COMPONENTS:" ${OpenCV_LIB_COMPONENTS})
-message("OpenCV_CONFIG_PATH" ${OpenCV_CONFIG_PATH})
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -88,7 +76,7 @@ message("OpenCV_CONFIG_PATH" ${OpenCV_CONFIG_PATH})
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs#   std_msgs
+#   geometry_msgs#   manip_msgs#   sensor_msgs#   std_msgs#   vision_msgs
 # )
 
 ################################################
@@ -122,8 +110,8 @@ message("OpenCV_CONFIG_PATH" ${OpenCV_CONFIG_PATH})
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES plane_extractor
-#  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs tf
+#  LIBRARIES act_pln
+#  CATKIN_DEPENDS geometry_msgs manip_msgs roscpp rospy sensor_msgs std_msgs tf vision_msgs
 #  DEPENDS system_lib
 )
 
@@ -134,12 +122,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
+# include
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/plane_extractor.cpp
+#   src/${PROJECT_NAME}/act_pln.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -150,7 +139,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/plane_extractor_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/act_pln_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -167,31 +156,57 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(capture_cloud src/capture_cloud.cpp)
-add_dependencies(capture_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(capture_cloud
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+#############
+## Install ##
+#############
 
-add_executable(cloud_viewer src/cloud_viewer.cpp)
-add_dependencies(cloud_viewer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cloud_viewer
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+# all install targets should use catkin DESTINATION variables
+# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
-add_executable(plane_extractor src/plane_extractor.cpp)
-add_dependencies(plane_extractor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(plane_extractor
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+## Mark executable scripts (Python etc.) for installation
+## in contrast to setup.py, you can choose the destination
+# catkin_install_python(PROGRAMS
+#   scripts/my_python_script
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
-add_executable(obj_recog src/obj_recog.cpp)
-add_dependencies(obj_recog ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(obj_recog
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+## Mark executables for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
+# install(TARGETS ${PROJECT_NAME}_node
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
+## Mark libraries for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
+# install(TARGETS ${PROJECT_NAME}
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+# )
+
+## Mark cpp header files for installation
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
+
+#############
+## Testing ##
+#############
+
+## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_act_pln.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
+
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)

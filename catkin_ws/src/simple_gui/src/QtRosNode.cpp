@@ -19,6 +19,7 @@ void QtRosNode::run()
     pubGoalGrip = n->advertise<control_msgs::GripperCommandActionGoal>("/my_gen3/custom_gripper_controller/gripper_cmd/goal", 10);
     cltForwardKinematics = n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/forward_kinematics");
     cltInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/inverse_kinematics");
+    cltRecognizeObjects  = n->serviceClient<vision_msgs::RecognizeObjects>("/recognize_objects");
     while(ros::ok() && !this->gui_closed)
     {
         ros::spinOnce();
@@ -98,6 +99,13 @@ bool QtRosNode::call_forward_kinematics(std::vector<float>& articular, std::vect
     cartesian[5] = srv.response.yaw;
     return true;
 }
+
+bool QtRosNode::call_recognize_objects()
+{
+    vision_msgs::RecognizeObjects srv;
+    return cltRecognizeObjects.call(srv);
+}
+    
 
 void QtRosNode::callback_joint_states(const sensor_msgs::JointState::ConstPtr& msg)
 {

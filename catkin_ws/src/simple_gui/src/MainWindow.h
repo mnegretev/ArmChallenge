@@ -55,6 +55,8 @@ public slots:
     void txtArticularGoalReturnPressed();
     void txtCartesianGoalReturnPressed();
     void sbGripperValueChanged(double d);
+
+    void btnRecognizeObjectsPressed();
     
 private:
     Ui::MainWindow *ui;

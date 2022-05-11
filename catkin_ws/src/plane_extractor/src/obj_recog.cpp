@@ -7,6 +7,8 @@
 #include "visualization_msgs/Marker.h"
 #include "tf/transform_listener.h"
 #include "pcl_ros/transforms.h"
+#include "vision_msgs/RecognizeObjects.h"
+#include "vision_msgs/VisionObject.h"
 
 tf::TransformListener* tf_listener;
 ros::Publisher pub_centroids;
@@ -125,6 +127,38 @@ void callback_point_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
     cv::imshow("Extracted Plane", bgr);
 }
 
+bool callback_recognize_objects(vision_msgs::RecognizeObjects::Request& req, vision_msgs::RecognizeObjects::Response& resp)
+{
+    sensor_msgs::PointCloud2 cloud_camera = req.point_cloud;
+    sensor_msgs::PointCloud2 cloud_robot;
+    if(req.point_cloud.width == 0 || req.point_cloud.height == 0)
+    {
+        std::cout << "ObjRecog.->Trying to get point cloud..." << std::endl;
+        cloud_camera = *ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth/points", ros::Duration(1.0));
+    }
+    pcl_ros::transformPointCloud("world", cloud_camera, cloud_robot, *tf_listener);
+    cv::Mat bgr, bin, centroids;
+    cv::Mat xyz_robot;
+    cv::Mat xyz_camera;
+    PointCloud2MsgToCvMat(cloud_camera, bgr, xyz_camera);
+    PointCloud2MsgToCvMat(cloud_robot , bgr, xyz_robot );
+    bgr = get_image_no_background(bgr, xyz_camera, xyz_robot);
+    bin = color_segmentation(bgr);
+    centroids = clusterize(bin, xyz_robot);
+    pub_centroids.publish(get_object_marker(centroids));
+    cv::imshow("Extracted Plane", bgr);
+
+    for(int i=0; i< centroids.rows; i++)
+    {
+        vision_msgs::VisionObject obj;
+        obj.pose.position.x = centroids.at<float>(i,0);
+        obj.pose.position.y = centroids.at<float>(i,1);
+        obj.pose.position.z = centroids.at<float>(i,2);
+        resp.recog_objects.push_back(obj);
+    }
+    return true;
+}
+
 void on_z_changed(int, void*){}
 void on_d_changed(int, void*){}
 
@@ -133,7 +167,8 @@ int main(int argc, char** argv)
     std::cout << "INITIALIZING OBJECT RECOGNIZER BY MARCOSOFT ..." << std::endl;
     ros::init(argc, argv, "obj_recog");
     ros::NodeHandle n;
-    ros::Subscriber sub_cloud = n.subscribe("/camera/depth/points", 1, callback_point_cloud);
+    //ros::Subscriber sub_cloud = n.subscribe("/camera/depth/points", 1, callback_point_cloud);
+    ros::ServiceServer srvRecogObjs = n.advertiseService("/recognize_objects", callback_recognize_objects);
     pub_centroids = n.advertise<visualization_msgs::Marker>("/marker_centroids", 10);
     ros::Rate loop(30);
     tf_listener = new tf::TransformListener();

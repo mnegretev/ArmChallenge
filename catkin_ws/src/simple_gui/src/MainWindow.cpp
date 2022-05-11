@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(ui->txtArticularGoal, SIGNAL(returnPressed()), this, SLOT(txtArticularGoalReturnPressed()));
     QObject::connect(ui->txtCartesianGoal, SIGNAL(returnPressed()), this, SLOT(txtCartesianGoalReturnPressed()));
+
+    QObject::connect(ui->btnRecognizeObjects, SIGNAL(pressed()), this, SLOT(btnRecognizeObjectsPressed()));
 }
 
 MainWindow::~MainWindow()
@@ -252,4 +254,9 @@ void MainWindow::txtCartesianGoalReturnPressed()
 void MainWindow::sbGripperValueChanged(double d)
 {
     qtRosNode->publish_goal_gripper(d);
+}
+
+void MainWindow::btnRecognizeObjectsPressed()
+{
+    qtRosNode->call_recognize_objects();
 }

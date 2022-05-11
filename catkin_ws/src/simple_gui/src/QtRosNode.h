@@ -11,6 +11,7 @@
 #include "control_msgs/GripperCommandActionGoal.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
 #include "manip_msgs/ForwardKinematics.h"
+#include "vision_msgs/RecognizeObjects.h"
 
 class QtRosNode : public QThread
 {
@@ -26,6 +27,7 @@ public:
     ros::Subscriber subJointStates;
     ros::ServiceClient cltInverseKinematics;
     ros::ServiceClient cltForwardKinematics;
+    ros::ServiceClient cltRecognizeObjects;
     
     bool gui_closed;
     std::vector<float> current_q;
@@ -38,6 +40,7 @@ public:
     void publish_goal_gripper(float a);
     bool call_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
     bool call_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
+    bool call_recognize_objects();
     void callback_joint_states(const sensor_msgs::JointState::ConstPtr& msg);
     
 signals:
