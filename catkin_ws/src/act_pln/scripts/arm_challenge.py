@@ -16,6 +16,8 @@ predefined_positions = [#[ 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,  0.00
                         [ 0.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002],
                         [ 1.0000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002],
                         [ 1.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002]]
+green_bin_q = [-2.1000, 0.4736, 0.0000, 1.2494, 0.0000, 1.2789, -1.5002]
+blue_bin_q  = [ 2.1000, 0.4736, 0.0000, 1.2494, 0.0000, 1.2789, -1.5002]
 
 def callback_state(msg):
     global goal_q
@@ -151,8 +153,35 @@ def main():
         elif state == "SM_WAIT_FOR_LIFT_OBJECT_REACHED":
             if goal_reached:
                 goal_reached = False
-                print("ActPln.->Prepare position reached")
-                state = "SM_TAKE_OBJECT"
+                print("Lift Object position reached")
+                state = "SM_MOVE_TO_BIN"
+
+        elif state == "SM_MOVE_TO_BIN":
+            goal_q = numpy.asarray(green_bin_q)
+            print("Sending object position: " + str(goal_q))
+            msg_goal_q = Float32MultiArray()
+            msg_goal_q.data = green_bin_q
+            pub_goal_q.publish(msg_goal_q)
+            state = "SM_WAIT_FOR_MOVE_TO_BIN"
+            goal_reached = False
+
+        elif state == "SM_WAIT_FOR_MOVE_TO_BIN":
+            if goal_reached:
+                goal_reached = False
+                print("Bin position reached")
+                state = "SM_LEAVE_OBJECT"
+
+        elif state == "SM_LEAVE_OBJECT":
+            msg_grip = GripperCommandActionGoal()
+            msg_grip.goal.command.position = 0.0
+            pub_goal_g.publish(msg_grip)
+            grip_delay_counter = 0
+            state = "SM_WAIT_FOR_LEAVE_OBJECT"
+
+        elif state == "SM_WAIT_FOR_LEAVE_OBJECT":
+            grip_delay_counter += 1
+            if grip_delay_counter > 20:
+                state = "SM_SEND_NEXT_POSITION"
         loop.sleep()
     rospy.spin()
 
