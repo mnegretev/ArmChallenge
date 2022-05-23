@@ -1,5 +1,6 @@
 function obj_position = get_nearest_object(xyz, rgb)
     % REQUIRES STATISTICS AND MACHINE LEARNING TOOLBOX
+    close all
     figure
     imshow(reshape(rgb, 480, 270, 3));
     title("Original Image")
