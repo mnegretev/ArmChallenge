@@ -16,4 +16,4 @@ To run the code, follow these steps:
 * In the command window, run ArmChallenge
 
 Video demonstrating software capabilities:
-
+https://github.com/mnegretev/ArmChallenge/blob/Challenge2022/ArmChallengeDemonstration.mp4
