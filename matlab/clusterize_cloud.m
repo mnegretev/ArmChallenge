@@ -15,8 +15,4 @@ function [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb)
         clusters_rgb{idx(i)}(counters(idx(i)),:) = rgb(i,:);
         counters(idx(i)) = counters(idx(i)) + 1;
     end
-    %figure
-    %pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
-    %hold on
-    %scatter3(centroids(:,1), centroids(:,2), centroids(:,3), 200, "red", 'filled', 'o');
-    %hold off
+    

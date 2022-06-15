@@ -1,4 +1,4 @@
-function Q = inverse_kinematics(x,y,z, robot, sub_current_pose)
+function Q = inverse_kinematics(pd, robot, sub_current_pose)
     Q = receive(sub_current_pose, 1);
     Q = Q.Position(2:8);
     
@@ -6,7 +6,7 @@ function Q = inverse_kinematics(x,y,z, robot, sub_current_pose)
     T = getTransform(robot, Q', 'EndEffector_Link', 'base_link');
     rpy = rotm2eul(T(1:3,1:3));
     p  = [T(1,4) T(2,4) T(3,4) rpy(3) rpy(2) rpy(1)];
-    pd = [x y z p(4) p(5) p(6)];
+    %pd = [x y z p(4) p(5) p(6)];
     iterations = 0;
     while norm(p - pd) > 0.01 && iterations < 200
         J = jacobian(robot, Q');

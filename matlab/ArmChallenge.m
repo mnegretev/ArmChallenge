@@ -4,13 +4,13 @@ rosshutdown;
 rosinit;
 load('exampleHelperKINOVAGen3GripperCollRRT.mat');
 
-predefined_positions = [-1.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                        -1.0000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                        -0.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                         0.0000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                         0.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                         1.0000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002;
-                         1.5000, 0.1736, 0.0000, 1.6494, 0.0000, 1.2789, -1.5002];
+predefined_positions = [-1.50, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                        -1.00, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                        -0.50, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                         0.00, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                         0.50, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                         1.00, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50;
+                         1.50, -0.50, 0.00, 2.20, 0.00, 1.00, -1.50];
 green_bin_q = [-2.1000, 0.4736, 0.0000, 1.2494, 0.0000, 1.2789, -1.5002];
 blue_bin_q  = [ 2.1000, 0.4736, 0.0000, 1.2494, 0.0000, 1.2789, -1.5002];
 
@@ -25,7 +25,9 @@ pub_goal_g    = rospublisher('/my_gen3/custom_gripper_controller/gripper_cmd/goa
 
 state = "SM_INIT";
 idx   = -1;
-target_object = -1;
+obj_position = [inf inf inf];
+obj_class = 'unknown';
+obj_axis  = zeros(3,3);
 while true
     if state == "SM_INIT"
         disp("ActPln.->Starting state machine...")
@@ -34,8 +36,8 @@ while true
         
     elseif state == "SM_SEND_NEXT_POSITION"
         idx = mod(idx + 1, length(predefined_positions)) + 1;
-        disp("ActPln.->Sending position " + string(idx))
         goal_q = predefined_positions(:, idx);
+        disp("ActPln.->Sending position: " + num2str(idx) + "=" + mat2str(goal_q'))
         msg_traj = calculate_trajectory(goal_q, sub_current_q);
         send(pub_goal_pose, msg_traj);
         state = "SM_WAIT_FOR_GOAL_REACHED";
@@ -46,24 +48,26 @@ while true
         if norm(goal_q - msg_state.Actual.Positions) < 0.05
             disp("ActPln.->Goal position reached")
             state = "SM_RECOGNIZE_OBJECTS";
+            pause(1.0);
         end
             
     elseif state == "SM_RECOGNIZE_OBJECTS"
         disp("ActPln.->Calling recognize objects function...")
-        [xyz, rgb] = get_cloud_wrt_base(sub_point_cloud, sub_current_q, robot);
-        target_obj = get_nearest_object(xyz, rgb);
-        disp("Target Object at ")
-        disp(target_obj)
-        if target_obj ~= [0,0,0]
-            state = "SM_INVERSE_KINEMATICS";
-        else
+        [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_cloud, sub_current_q, robot);
+        if obj_position == [inf inf inf]
             state = "SM_SEND_NEXT_POSITION";
+            disp("Cannot find known object. Moving to next position")
+        else
+            state = "SM_INVERSE_KINEMATICS";
+            disp("Target Object at " + mat2str(obj_position))
         end
 
     elseif state == "SM_INVERSE_KINEMATICS"
-        disp("Trying to calculate inverse kinematics for pose " + string(target_object))
-        goal_q = inverse_kinematics(double(target_obj(1)), double(target_obj(2)), double(target_obj(3) + 0.15), robot, sub_current_q);
-        disp("Sending prepare position: " + string(goal_q))
+        [roll,pitch,yaw] = get_best_grasping_orientation(sub_current_q, robot, obj_axis);
+        goal_cartesian = [obj_position roll pitch yaw] + [0 0 0.15 0 0 0];
+        disp("Trying to calculate inverse kinematics for pose " + mat2str(goal_cartesian))
+        goal_q = inverse_kinematics(goal_cartesian, robot, sub_current_q);
+        disp("Sending prepare position: " + mat2str(goal_q'))
         send(pub_goal_pose, calculate_trajectory(goal_q, sub_current_q));
         state = "SM_WAIT_FOR_PREPARE_REACHED";
 
@@ -72,12 +76,14 @@ while true
         if norm(goal_q - msg_state.Actual.Positions) < 0.05
             disp("ActPln.->Prepare position reached")
             state = "SM_SEND_OBJECT_POSITION";
+            pause(1.0)
         end
 
     elseif state == "SM_SEND_OBJECT_POSITION"
-        disp("Trying to calculate inverse kinematics for pose " + string(target_obj))
-        goal_q = inverse_kinematics(double(target_obj(1)), double(target_obj(2)), double(target_obj(3)), robot, sub_current_q);
-        disp("Sending object position: " + string(goal_q))
+        goal_cartesian = [obj_position roll pitch yaw];
+        disp("Trying to calculate inverse kinematics for pose " + mat2str(goal_cartesian))
+        goal_q = inverse_kinematics(goal_cartesian, robot, sub_current_q);
+        disp("Sending object position: " + mat2str(goal_q'))
         send(pub_goal_pose, calculate_trajectory(goal_q, sub_current_q));
         state = "SM_WAIT_FOR_OBJECT_REACHED";
         counter = 0;
@@ -88,6 +94,7 @@ while true
         if norm(goal_q - msg_state.Actual.Positions) < 0.05 || counter > 30
             disp("ActPln.->Object position reached")
             state = "SM_TAKE_OBJECT";
+            pause(1.0)
         end
 
     elseif state == "SM_TAKE_OBJECT"
@@ -104,9 +111,10 @@ while true
         end
 
     elseif state == "SM_LIFT_OBJECT"
-        disp("Trying to calculate inverse kinematics for pose " + string(target_object))
-        goal_q = inverse_kinematics(double(target_obj(1)), double(target_obj(2)), double(target_obj(3) + 0.25), robot, sub_current_q);
-        disp("Sending object position: " + string(goal_q))
+        goal_cartesian = [obj_position roll pitch yaw] + [0 0 0.15 0 0 0];
+        disp("Trying to calculate inverse kinematics for pose " + mat2str(goal_cartesian))
+        goal_q = inverse_kinematics(goal_cartesian, robot, sub_current_q);
+        disp("Sending object position: " + mat2str(goal_q'))
         send(pub_goal_pose, calculate_trajectory(goal_q, sub_current_q));
         state = "SM_WAIT_FOR_LIFT_OBJECT_REACHED";
         
@@ -118,17 +126,30 @@ while true
         end
 
     elseif state == "SM_MOVE_TO_BIN"
-        goal_q = green_bin_q';
-        disp("Sending object position: " + string(goal_q))
-        msg_traj = calculate_trajectory(goal_q, sub_current_q);
-        send(pub_goal_pose, msg_traj);
-        state = "SM_WAIT_FOR_MOVE_TO_BIN";
+        if strcmp(obj_class, 'can')
+            disp("Found a can object. Moving to green bin")
+            goal_q = green_bin_q';
+            msg_traj = calculate_trajectory(goal_q, sub_current_q);
+            send(pub_goal_pose, msg_traj);
+            state = "SM_WAIT_FOR_MOVE_TO_BIN";
+        elseif strcmp(obj_class, 'bottle')
+            disp("Found a bottle object. Moving to blue bin")
+            goal_q = blue_bin_q';
+            msg_traj = calculate_trajectory(goal_q, sub_current_q);
+            send(pub_goal_pose, msg_traj);
+            state = "SM_WAIT_FOR_MOVE_TO_BIN";
+        else
+            disp("Found an unknown object. Moving to next position")
+            state = "SM_SEND_NEXT_POSITION";
+        end
+        
 
     elseif state == "SM_WAIT_FOR_MOVE_TO_BIN"
         msg_state = receive(sub_state, 1);
         if norm(goal_q - msg_state.Actual.Positions) < 0.05
             disp("ActPln.->Bin position reached")
             state = "SM_LEAVE_OBJECT";
+            pause(1.0)
         end
 
     elseif state == "SM_LEAVE_OBJECT"
