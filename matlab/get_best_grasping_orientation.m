@@ -1,6 +1,6 @@
 function [roll, pitch, yaw] = get_best_grasping_orientation(sub_current_q, robot, obj_axis)
     %% Get current configuration
-    q = receive(sub_current_q, 1);
+    q = receive(sub_current_q, 3);
     q = q.Position(2:8);
     T = getTransform(robot, q', 'EndEffector_Link', 'base_link');
     rpy = rotm2eul(T(1:3,1:3)); 

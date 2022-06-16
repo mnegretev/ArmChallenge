@@ -1,5 +1,4 @@
 function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_cloud, sub_current_q, robot)
-    close all
     % REQUIRES STATISTICS AND MACHINE LEARNING TOOLBOX
     
     %Get current end effector position
@@ -11,13 +10,13 @@ function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_clou
     %Transform point cloud wrt base_link
     [xyz, rgb] = get_cloud_wrt_base(sub_point_cloud, sub_current_q, robot);
     %Display transformed cloud
-    figure
+    figure(1)
     pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
     title("Original Point Cloud")
     %Remove table from cloud
     [xyz, rgb] = filter_cloud(xyz, rgb);
     %Display cloud without table
-    figure
+    figure(2)
     pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
     title("Object clusters")
     hold on
@@ -44,6 +43,10 @@ function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_clou
             end
         end
     end
+    if obj_idx == 0
+        obj_axis = zeros(3,3);
+        return
+    end
     %Correct object position 
     theta = atan2(obj_position(2), obj_position(1));
     rho   = sqrt(obj_position(2)^2 + obj_position(1)^2);
@@ -51,7 +54,7 @@ function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_clou
     obj_position(1) = rho*cos(theta);
     obj_position(2) = rho*sin(theta);
     %Display nearest known object's cloud
-    figure
+    figure(3)
     pcshow(pointCloud(clusters_xyz{obj_idx}, 'Color', uint8(255*clusters_rgb{obj_idx})));
     title("Recognized: "+obj_class);
     %Calculates object-oriented axis by pca

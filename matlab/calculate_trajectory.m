@@ -1,7 +1,7 @@
 function msg = calculate_trajectory(Q_goal, sub_current_pose)
-    Q_current = receive(sub_current_pose, 1);
+    Q_current = receive(sub_current_pose, 3);
     Q_current = Q_current.Position(2:8);    
-    speed = 0.4;
+    speed = 0.6;
     t = 0.5 + max(abs(Q_goal - Q_current))/speed;
     
     [Qi,T] = get_polynomial_trajectory(Q_current(1), Q_goal(1), t, 0.05);

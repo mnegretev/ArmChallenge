@@ -2,10 +2,14 @@ function [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb)
     K = 15;
     [idx, centroids] = kmeans(xyz, K);
     d = min(pdist(centroids));
-    while d < 0.11 && K > 0
+    while d < 0.09 && K > 0
         K = K - 1;
         [idx, centroids] = kmeans(xyz, K);
-        d = min(pdist(centroids));
+        if K > 1
+            d = min(pdist(centroids));
+        else
+            d = inf;
+        end
     end
     clusters_xyz = {};
     clusters_rgb = {};
