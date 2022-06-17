@@ -1,4 +1,7 @@
 function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_cloud, sub_current_q, robot)
+    obj_position = [inf inf inf];
+    obj_class = 'unknown';
+    obj_idx = 0;
     % REQUIRES STATISTICS AND MACHINE LEARNING TOOLBOX
     
     %Get current end effector position
@@ -16,21 +19,26 @@ function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_clou
     %Remove table from cloud
     [xyz, rgb] = filter_cloud(xyz, rgb);
     %Display cloud without table
-    figure(2)
+    figure(1)
     pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
     title("Object clusters")
     hold on
     %Clusterize cloud
     [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb);
+    if isempty(clusters_xyz)
+        obj_axis = zeros(3,3);
+        return
+    end
     %Display centroids
     scatter3(centroids(:,1), centroids(:,2), centroids(:,3), 200, "red", 'filled', 'o');
     hold off
     %Find the nearest recognized object
     min_d = inf;
-    obj_position = [inf inf inf];
-    obj_class = 'unknown';
-    obj_idx = 0;
+    
     for i=1:length(clusters_xyz)
+        if length(clusters_xyz{i}) < 2000
+            continue
+        end
         colors = clusterize_color(clusters_xyz{i}, clusters_rgb{i});
         obj_class_temp = classify_by_color(colors);
         if ~strcmp(obj_class_temp, 'unknown')
@@ -50,13 +58,16 @@ function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_clou
     %Correct object position 
     theta = atan2(obj_position(2), obj_position(1));
     rho   = sqrt(obj_position(2)^2 + obj_position(1)^2);
-    rho   = rho + 0.05;
+    if rho < 0.7
+        rho   = rho + 0.05;
+    end
     obj_position(1) = rho*cos(theta);
     obj_position(2) = rho*sin(theta);
     %Display nearest known object's cloud
-    figure(3)
+    figure(2)
     pcshow(pointCloud(clusters_xyz{obj_idx}, 'Color', uint8(255*clusters_rgb{obj_idx})));
     title("Recognized: "+obj_class);
     %Calculates object-oriented axis by pca
+    disp("Points in object cloud: " + num2str(length(clusters_xyz{obj_idx})));
     obj_axis = pca(clusters_xyz{obj_idx});
     

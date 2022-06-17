@@ -1,9 +1,14 @@
 function centroids = clusterize_color(xyz, rgb)
     nrgb = zeros(size(rgb));
     for i=1:length(rgb)
-        nrgb(i,:) = rgb(i,:)/max(rgb(i,:));
+        m = max(rgb(i,:));
+        if m > 0
+            nrgb(i,:) = rgb(i,:)/max(rgb(i,:));
+        else
+            nrgb(i,:) = rgb(i,:);
+        end
     end
-
+    
     K = 15;
     [idx, centroids] = kmeans(nrgb, K);
     d = min(pdist(centroids));

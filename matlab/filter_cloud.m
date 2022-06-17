@@ -4,7 +4,10 @@ function [filtered_xyz, filtered_rgb] = filter_cloud(xyz, rgb)
     filtered_rgb = [];
     for i=1:length(xyz)
         hsv = rgb2hsv(rgb(i,:));
-        if hsv(1) > 27/360 && hsv(1) < 33/360
+        if hsv(1) > 24/360 && hsv(1) < 50/360
+            continue
+        end
+        if hsv(1) > 37/360 && hsv(1) < 44/360
             continue
         end
         if xyz(i,3) > 0.02

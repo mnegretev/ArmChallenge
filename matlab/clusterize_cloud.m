@@ -1,4 +1,10 @@
 function [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb)
+    clusters_xyz = {};
+    clusters_rgb = {};
+    if length(xyz) < 15
+        centroids = [];
+        return
+    end
     K = 15;
     [idx, centroids] = kmeans(xyz, K);
     d = min(pdist(centroids));
@@ -11,8 +17,6 @@ function [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb)
             d = inf;
         end
     end
-    clusters_xyz = {};
-    clusters_rgb = {};
     counters = ones(length(idx), 1);
     for i=1:length(idx)
         clusters_xyz{idx(i)}(counters(idx(i)),:) = xyz(i,:);
