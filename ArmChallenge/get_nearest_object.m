@@ -1,63 +1,73 @@
-function obj_position = get_nearest_object(xyz, rgb)
+function [obj_position, obj_class, obj_axis] = get_nearest_object(sub_point_cloud, sub_current_q, robot)
+    obj_position = [inf inf inf];
+    obj_class = 'unknown';
+    obj_idx = 0;
     % REQUIRES STATISTICS AND MACHINE LEARNING TOOLBOX
-    close all
-    figure
-    imshow(reshape(rgb, 480, 270, 3));
-    title("Original Image")
     
-    %%% Remove table from rgb image
-    for i=1:length(rgb)
-        if xyz(i,3) < 0.02
-            rgb(i,:) = [0,0,0];
-        end
-    end
+    %Get current end effector position
+    Q = receive(sub_current_q, 3);
+    Q = Q.Position(2:8);
+    T = getTransform(robot, Q', 'EndEffector_Link', 'base_link');
+    p  = [T(1,4) T(2,4) T(3,4)];
     
-    %%% Color regmentation of red, green, blue and yellow
-    hsv   = rgb2hsv(rgb);
-    bin_r =         hsv(:,1) >=   0/180 & hsv(:,1) <=  10/180;
-    bin_r = bin_r & hsv(:,2) >= 200/255 & hsv(:,2) <= 255/255;
-    bin_r = bin_r & hsv(:,3) >=  30/255 & hsv(:,3) <= 255/255;
-    bin_g =         hsv(:,1) >=  50/180 & hsv(:,1) <=  70/180;
-    bin_g = bin_g & hsv(:,2) >= 200/255 & hsv(:,2) <= 255/255;
-    bin_g = bin_g & hsv(:,3) >=  30/255 & hsv(:,3) <= 255/255;
-    bin_b =         hsv(:,1) >= 110/180 & hsv(:,1) <= 130/180;
-    bin_b = bin_b & hsv(:,2) >= 200/255 & hsv(:,2) <= 255/255;
-    bin_b = bin_b & hsv(:,3) >=  30/255 & hsv(:,3) <= 255/255;
-    bin_y =         hsv(:,1) >=  25/180 & hsv(:,1) <=  35/180;
-    bin_y = bin_y & hsv(:,2) >= 200/255 & hsv(:,2) <= 255/255;
-    bin_y = bin_y & hsv(:,3) >=  30/255 & hsv(:,3) <= 255/255;
-    bin = bin_r | bin_g | bin_b | bin_y;
-    figure
-    imshow(reshape(rgb, 480, 270, 3));
-    title("Removing table")
-    figure
-    imshow(reshape(bin, 480, 270));
-    title("Segmentation by color")
-    
-    %%%Remove table from xyz cloud
-    counter = 1;
-    for i=1:length(bin)
-        if bin(i)
-            filtered_cloud(counter,:) = xyz(i,:);
-            counter = counter + 1;
-        end
-    end
-    
-    %%% Clusterizing with K-Means
-    [idx, centroids] = kmeans(filtered_cloud, 5);
-    figure
-    scatter3(xyz(:,1), xyz(:,2), xyz(:,3),1, rgb)
-    title('Cloud with no table')
+    %Transform point cloud wrt base_link
+    [xyz, rgb] = get_cloud_wrt_base(sub_point_cloud, sub_current_q, robot);
+    %Display transformed cloud
+    figure(1)
+    pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
+    title("Original Point Cloud")
+    %Remove table from cloud
+    [xyz, rgb] = filter_cloud(xyz, rgb);
+    %Display cloud without table
+    figure(1)
+    pcshow(pointCloud(xyz, 'Color', uint8(rgb*255)));
+    title("Object clusters")
     hold on
+    %Clusterize cloud
+    [clusters_xyz, clusters_rgb, centroids] = clusterize_cloud(xyz, rgb);
+    if isempty(clusters_xyz)
+        obj_axis = zeros(3,3);
+        return
+    end
+    %Display centroids
     scatter3(centroids(:,1), centroids(:,2), centroids(:,3), 200, "red", 'filled', 'o');
+    hold off
+    %Find the nearest recognized object
+    min_d = inf;
     
-    %%% Finding centroid with the highest 'z'
-    max_z = -1;
-    obj_position = [0,0,0];
-    for i=1:length(centroids)
-        if centroids(i,3) > max_z
-            max_z = centroids(i,3);
-            obj_position = centroids(i,:);
+    for i=1:length(clusters_xyz)
+        if length(clusters_xyz{i}) < 2000
+            continue
+        end
+        colors = clusterize_color(clusters_xyz{i}, clusters_rgb{i});
+        obj_class_temp = classify_by_color(colors);
+        if ~strcmp(obj_class_temp, 'unknown')
+            d = norm(centroids(i,:) - p);
+            if d < min_d
+                min_d = d;
+                obj_position = centroids(i,:);
+                obj_class = obj_class_temp;
+                obj_idx = i;
+            end
         end
     end
-            
+    if obj_idx == 0
+        obj_axis = zeros(3,3);
+        return
+    end
+    %Correct object position 
+    theta = atan2(obj_position(2), obj_position(1));
+    rho   = sqrt(obj_position(2)^2 + obj_position(1)^2);
+    if rho < 0.7
+        rho   = rho + 0.05;
+    end
+    obj_position(1) = rho*cos(theta);
+    obj_position(2) = rho*sin(theta);
+    %Display nearest known object's cloud
+    figure(2)
+    pcshow(pointCloud(clusters_xyz{obj_idx}, 'Color', uint8(255*clusters_rgb{obj_idx})));
+    title("Recognized: "+obj_class);
+    %Calculates object-oriented axis by pca
+    disp("Points in object cloud: " + num2str(length(clusters_xyz{obj_idx})));
+    obj_axis = pca(clusters_xyz{obj_idx});
+    
