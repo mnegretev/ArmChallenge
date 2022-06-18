@@ -13,7 +13,8 @@ To run the code, follow these steps:
 * Set the environment variables ROS_MASTER_URI, ROS_HOSTNAME and ROS_IP, accordingly
 * Open MATLAB and change the working directory to the ArmChallenge folder of this repository.
 * Open the MATLAB project and install all necessary dependencies indicated by the Dependency Analyzer.
-* In the command window, run ArmChallenge
+* In the command window, run ArmChallenge.
+* Be patience. With a real time factor of 0.9 the full task will take 10 mins approx.
 
 Video demonstrating software capabilities:
-https://github.com/mnegretev/ArmChallenge/blob/Challenge2022/ArmChallengeDemonstration.mp4
+https://drive.google.com/file/d/1AHK4YAXmSJJoazB5WFUq5xGv59blWfEK/view?usp=sharing
