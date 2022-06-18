@@ -1,5 +1,5 @@
 # ArmChallenge 2022
-## Team: Pumas
+## Team: Tamagoya
 ### National Autonomous University of Mexico - Mexico / Tamagawa University - Japan 
 
 MATLAB files for the ArmChallenge 2022.
